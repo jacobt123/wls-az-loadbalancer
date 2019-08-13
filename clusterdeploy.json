@@ -134,7 +134,7 @@
       "subnetName":"Subnet",
       "subnetPrefix":"10.0.0.0/24",
       "storageAccountType":"Standard_LRS",
-      "publicIPAddressName":"vmpublicIP",
+      "publicIPAddressName":"[concat(variables('vmNamePrefix'),'publicIP')]",
       "publicIPAddressType":"Dynamic",
       "vmSize":"[parameters('vmSizeSelect')]",
       "virtualNetworkName":"olvmVNET",
