@@ -128,7 +128,7 @@
       "storageAccountName":"[concat(uniquestring(resourceGroup().id), 'olvm')]",
       "imagePublisher":"Oracle",
       "imageOffer":"Oracle-Linux",
-      "nicName":"vmNIC",
+      "nicName":"[concat(variables('vmNamePrefix'),'vmNIC')]",
       "vmNamePrefix": "wlsVM",
       "addressPrefix":"10.0.0.0/16",
       "subnetName":"Subnet",
@@ -268,7 +268,7 @@
                },
                "dataDisks":[
                   {
-                     "diskSizeGB":1023,
+                     "diskSizeGB":900,
                      "lun":0,
                      "createOption":"Empty"
                   }
