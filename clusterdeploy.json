@@ -129,7 +129,7 @@
       "imageOffer":"Oracle-Linux",
       "vmNamePrefix": "wlsVM",
       "nicName":"[concat(variables('vmNamePrefix'),'_NIC')]",	   
-      "storageAccountName":"[concat(variables('vmNamePrefix'),uniquestring(resourceGroup().id))]",	   
+      "storageAccountName":"[concat('storage',uniquestring(resourceGroup().id))]",	   
       "addressPrefix":"10.0.0.0/16",
       "subnetName":"Subnet",
       "subnetPrefix":"10.0.0.0/24",
