@@ -128,7 +128,7 @@
       "imagePublisher":"Oracle",
       "imageOffer":"Oracle-Linux",
       "vmNamePrefix": "wlsVM",
-      "nicName":"[concat(variables('vmNamePrefix'),'_NIC')]",	   
+      "nicName":"_NIC",	   
       "storageAccountName":"[concat('storage',uniquestring(resourceGroup().id))]",	   
       "addressPrefix":"10.0.0.0/16",
       "subnetName":"Subnet",
@@ -207,7 +207,7 @@
       {
          "type":"Microsoft.Network/networkInterfaces",
          "apiVersion":"2018-11-01",
-         "name":"[concat(variables('nicName'),copyIndex())]",
+         "name":"[concat(concat(variables('vmNamePrefix'),copyIndex()),variables('nicName'))]",
          "location":"[parameters('location')]",
          "copy":{
             "name":"nicLoop",
@@ -277,7 +277,7 @@
             "networkProfile":{
                "networkInterfaces":[
                   {
-                     "id":"[resourceId('Microsoft.Network/networkInterfaces',concat(variables('nicName'),copyIndex()))]"
+                     "id":"[resourceId('Microsoft.Network/networkInterfaces',concat(concat(variables('vmNamePrefix'),copyIndex()),variables('nicName')))]"
                   }
                ]
             },
