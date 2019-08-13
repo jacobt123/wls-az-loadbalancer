@@ -134,10 +134,10 @@
       "subnetName":"Subnet",
       "subnetPrefix":"10.0.0.0/24",
       "storageAccountType":"Standard_LRS",
-      "publicIPAddressName":"[concat(variables('vmNamePrefix'),'_PublicIP')]",
+      "publicIPAddressName":"_PublicIP",
       "publicIPAddressType":"Dynamic",
       "vmSize":"[parameters('vmSizeSelect')]",
-      "virtualNetworkName":"olvmVNET",
+      "virtualNetworkName":"[concat(parameters('wlsDomainName'),'_VNET')]",
       "ScriptFolder": "scripts",
       "ScriptFileName": "setupClusterDomain.sh",
       "linuxConfiguration":{
@@ -170,7 +170,7 @@
       {
          "type":"Microsoft.Network/publicIPAddresses",
          "apiVersion":"2018-11-01",
-         "name":"[concat(variables('publicIPAddressName'),copyIndex())]",
+         "name":"[concat(concat(variables('vmNamePrefix'),copyIndex()),variables('publicIPAddressName'))]",
          "location":"[parameters('location')]",
          "copy":{
             "name":"publicIPLoop",
@@ -224,7 +224,7 @@
                   "properties":{
                      "privateIPAllocationMethod":"Dynamic",
                      "publicIPAddress":{
-                        "id":"[resourceId('Microsoft.Network/publicIPAddresses',concat(variables('publicIPAddressName'),copyIndex()))]"
+                        "id":"[resourceId('Microsoft.Network/publicIPAddresses',concat(concat(variables('vmNamePrefix'),copyIndex()),variables('publicIPAddressName')))]"
                      },
                      "subnet":{
                         "id":"[variables('subnetRef')]"
