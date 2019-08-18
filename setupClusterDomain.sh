@@ -9,7 +9,7 @@ function echo_stderr ()
 #Function to display usage message
 function usage()
 {
-  echo_stderr "./setupAdminDomain.sh <acceptOTNLicenseAgreement> <otnusername> <otnpassword> <wlsDomainName> <managedServerPrefix> <wlsPassword> <wlsServerName> <index value> <vmNamePrefix>"  
+  echo_stderr "./setupClusterDomain.sh <acceptOTNLicenseAgreement> <otnusername> <otnpassword> <wlsDomainName> <managedServerPrefix> <wlsPassword> <wlsServerName> <index value> <vmNamePrefix>"  
 }
 
 function downloadJDK()
@@ -348,17 +348,14 @@ function create_adminSetup()
     fi
 }
 
-#Function to start admin server
-function start_admin()
+#Function to setup admin boot properties
+function admin_boot_setup()
 {
  #Create the boot.properties directory
  mkdir -p "$DOMAIN_PATH/$wlsDomainName/servers/admin/security"
  echo "username=$wlsUserName" > "$DOMAIN_PATH/$wlsDomainName/servers/admin/security/boot.properties"
  echo "password=$wlsPassword" >> "$DOMAIN_PATH/$wlsDomainName/servers/admin/security/boot.properties"
  sudo chown -R $username:$groupname $DOMAIN_PATH/$wlsDomainName/servers
- runuser -l oracle -c "export JAVA_HOME=$JDK_PATH/jdk1.8.0_131 ; \"$DOMAIN_PATH/$wlsDomainName/startWebLogic.sh\"  > "$DOMAIN_PATH/$wlsDomainName/admin.out" 2>&1 &"
- sleep 3m
- wait_for_admin
 }
 
 #This function to wait for admin server 
@@ -388,6 +385,51 @@ do
 done  
 }
 
+function create_nodemanager_service()
+{
+ cat <<EOF >/etc/systemd/system/wls_nodemanager.service
+ [Unit]
+Description=WebLogic nodemanager service
+ 
+[Service]
+Type=simple
+# Note that the following three parameters should be changed to the correct paths
+# on your own system
+WorkingDirectory="$DOMAIN_PATH/$wlsDomainName"
+ExecStart="$DOMAIN_PATH/$wlsDomainName/bin/startNodeManager.sh -DCrashRecoveryEnabled=true"
+ExecStop="$DOMAIN_PATH/$wlsDomainName/bin/stopNodeManager.sh"
+User=oracle
+Group=oracle
+KillMode=process
+LimitNOFILE=65535
+ 
+[Install]
+WantedBy=multi-user.target
+EOF
+}
+
+# This function to create adminserver service
+function create_adminserver_service()
+{
+cat <<EOF >/etc/systemd/system/wls_admin.service
+[Unit]
+Description=WebLogic Adminserver service
+ 
+[Service]
+Type=simple
+WorkingDirectory="/u01/domains/$wlsDomainName"
+ExecStart="/u01/domains/$wlsDomainName/startWebLogic.sh"
+ExecStop="/u01/domains/$wlsDomainName/bin/stopWebLogic.sh"
+User=oracle
+Group=oracle
+KillMode=process
+LimitNOFILE=65535
+ 
+[Install]
+WantedBy=multi-user.target
+EOF
+}
+
 #This function to start managed server
 function start_managed()
 {
@@ -407,13 +449,6 @@ if [[ $? != 0 ]]; then
   echo "Error : Failed in starting managed server $wlsServerName"
   exit 1
 fi
-}
-
-#Function to start nodemanager
-function start_nm()
-{
-runuser -l oracle -c "export JAVA_HOME=$JDK_PATH/jdk1.8.0_131 ; \"$DOMAIN_PATH/$wlsDomainName/bin/startNodeManager.sh\" &"
-sleep 3m
 }
 
 function create_managedSetup(){
@@ -451,22 +486,6 @@ function create_managedSetup(){
          echo "Error : Adding server $wlsServerName failed"
          exit 1
     fi
-}
-
-#Function to deploy application in offline mode
-#Sample shopping cart 
-function deploy_sampleApp()
-{
-    create_app_deploy_model
-	echo "Downloading Sample Application"
-	wget -q $samplApp
-	sudo unzip -o shoppingcart.zip -d $DOMAIN_PATH
-	sudo chown -R $username:$groupname $DOMAIN_PATH/shoppingcart.*
-	runuser -l oracle -c "export JAVA_HOME=$JDK_PATH/jdk1.8.0_131 ;  $DOMAIN_PATH/weblogic-deploy/bin/deployApps.sh -oracle_home $INSTALL_PATH/Oracle/Middleware/Oracle_Home -archive_file $DOMAIN_PATH/shoppingcart.war -domain_home $DOMAIN_PATH/$wlsDomainName -model_file  $DOMAIN_PATH/deploy-app.yaml"
-	if [[ $? != 0 ]]; then
-          echo "Error : Deploying application failed"
-          exit 1
-        fi
 }
 
 #Install Weblogic Server using Silent Installation Templates
@@ -679,6 +698,7 @@ create_oraUninstallResponseTemplate
 installWLS
 
 echo "Weblogic Server Installation Completed succesfully."
+sudo systemctl enable rngd 
 
 if [ $wlsServerName == "admin" ];
 then
@@ -686,20 +706,25 @@ then
   echo "Creating Admin setup "
   create_adminSetup
   echo "Completed Admin setup"
-  echo "Starting admin server"
-  start_admin
-  echo "Started admin server"
-  echo "Starting nodemanager"
-  start_nm  
-  echo "Started nodemanager"
+  echo "Creating services for Nodemanager and Admin server"
+  create_nodemanager_service
+  admin_boot_setup
+  create_adminserver_service
+  sudo systemctl enable wls_nodemanager
+  sudo systemctl enable wls_admin
+  sudo systemctl daemon-reload
+  sudo systemctl start wls_nodemanager
+  sudo systemctl start wls_admin
+  wait_for_admin
 else
   echo "Creating managed server setup"
   create_managedSetup
   echo "Completed managed server setup"
-  start_nm
-  sleep 1m
-  echo "Starting managed server $wlsServerName"
+  echo "Creating services for Nodemanager and Admin server"
+  create_nodemanager_service
+  sudo systemctl enable wls_nodemanager
+  sudo systemctl daemon-reload
+  sudo systemctl start wls_nodemanager
   start_managed
-  echo "Started managed server $wlsServerName"
 fi  
 cleanup
