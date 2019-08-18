@@ -12,6 +12,7 @@ function usage()
   echo_stderr "./setupClusterDomain.sh <acceptOTNLicenseAgreement> <otnusername> <otnpassword> <wlsDomainName> <wlsUserName=> <wlsPassword> <managedServerPrefix> <index value> <vmNamePrefix>"  
 }
 
+# Download JDK for WLS
 function downloadJDK()
 {
    for in in {1..5}
@@ -29,6 +30,7 @@ function downloadJDK()
    done
 }
 
+#Download WLS 12.2.1.3.0
 function downloadWLS()
 {
   for in in {1..5}
@@ -45,6 +47,8 @@ function downloadWLS()
      fi
   done
 }
+
+# Validate th JDK downloaded checksum
 function validateJDKZipCheckSum()
 {
   jdkZipFile="$1"
@@ -195,7 +199,7 @@ ORACLE_HOME=[INSTALL_PATH]/Oracle/Middleware/Oracle_Home/
 EOF
 }
 
-#Creates weblogic deployment model for admin domain
+#Creates weblogic deployment model for cluster domain admin setup
 function create_admin_model()
 {
     echo "Creating admin domain model"
@@ -225,7 +229,7 @@ topology:
 EOF
 }
 
-#Creates weblogic deployment model for admin domain
+#Creates weblogic deployment model for cluster domain managed server
 function create_managed_model()
 {
     echo "Creating admin domain model"
@@ -284,6 +288,7 @@ cmo.createMachine('$nmHost')
 cd('/Machines/$nmHost/NodeManager/$nmHost')
 cmo.setListenPort(int($nmPort))
 cmo.setListenAddress('$nmHost')
+cmo.setDCrashRecoveryEnabled(true)
 cmo.setNMType('ssl')
 save()
 resolve()
@@ -386,6 +391,7 @@ do
 done  
 }
 
+# Create systemctl service for nodemanager
 function create_nodemanager_service()
 {
  echo "Creating NodeManager service"
@@ -398,7 +404,7 @@ Type=simple
 # Note that the following three parameters should be changed to the correct paths
 # on your own system
 WorkingDirectory="$DOMAIN_PATH/$wlsDomainName"
-ExecStart="$DOMAIN_PATH/$wlsDomainName/bin/startNodeManager.sh -DCrashRecoveryEnabled=true"
+ExecStart="$DOMAIN_PATH/$wlsDomainName/bin/startNodeManager.sh"
 ExecStop="$DOMAIN_PATH/$wlsDomainName/bin/stopNodeManager.sh"
 User=oracle
 Group=oracle
@@ -420,9 +426,9 @@ Description=WebLogic Adminserver service
  
 [Service]
 Type=simple
-WorkingDirectory="/u01/domains/$wlsDomainName"
-ExecStart="/u01/domains/$wlsDomainName/startWebLogic.sh"
-ExecStop="/u01/domains/$wlsDomainName/bin/stopWebLogic.sh"
+WorkingDirectory="$DOMAIN_PATH/$wlsDomainName"
+ExecStart="$DOMAIN_PATH/$wlsDomainName/startWebLogic.sh"
+ExecStop="$DOMAIN_PATH/$wlsDomainName/bin/stopWebLogic.sh"
 User=oracle
 Group=oracle
 KillMode=process
@@ -454,6 +460,7 @@ if [[ $? != 0 ]]; then
 fi
 }
 
+# Create managed server setup
 function create_managedSetup(){
     echo "Creating Admin Setup"
     echo "Creating domain path /u01/domains"
@@ -562,8 +569,6 @@ export wlsAdminURL=$vmNamePrefix"0:$wlsAdminPort"
 export wlsClusterName="cluster1"
 
 
-echo "Arguments passed: acceptOTNLicenseAgreement=$1, otnusername=$2,otnpassword=$3,wlsDomainName=$4,wlsUserName=$5,wlsPassword=$6,managedServerPrefix=$7,indexValue=$8,vmNamePrefix=$9"
-
 if [ -z "$acceptOTNLicenseAgreement" ];
 then
         echo _stderr "acceptOTNLicenseAgreement is required. Value should be either Y/y or N/n"
@@ -642,7 +647,7 @@ echo "Installing zip unzip wget vnc-server rng-tools"
 sudo yum install -y zip unzip wget vnc-server rng-tools
 
 #Setting up rngd utils
-sudo systemctl status rngd
+sudo systemctl enable rngd
 sudo systemctl start rngd
 sudo systemctl status rngd
 
@@ -731,7 +736,7 @@ else
   echo "Enabling nodemanager service"
   sudo systemctl enable wls_nodemanager
   sudo systemctl daemon-reload
-  echo Starting nodemanager service"
+  echo "Starting nodemanager service"
   sudo systemctl start wls_nodemanager
   start_managed
 fi  
