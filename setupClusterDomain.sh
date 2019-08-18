@@ -256,7 +256,6 @@ EOF
 # This function to create model for sample application deployment 
 function create_app_deploy_model()
 {
-
     echo "Creating deploying applicaton model"
     cat <<EOF >$DOMAIN_PATH/deploy-app.yaml
 domainInfo:
@@ -351,12 +350,13 @@ function create_adminSetup()
 #Function to setup admin boot properties
 function admin_boot_setup()
 {
+ echo "Creating admin boot properties"
  #Create the boot.properties directory
  mkdir -p "$DOMAIN_PATH/$wlsDomainName/servers/admin/security"
  echo "username=$wlsUserName" > "$DOMAIN_PATH/$wlsDomainName/servers/admin/security/boot.properties"
  echo "password=$wlsPassword" >> "$DOMAIN_PATH/$wlsDomainName/servers/admin/security/boot.properties"
  sudo chown -R $username:$groupname $DOMAIN_PATH/$wlsDomainName/servers
-}
+ }
 
 #This function to wait for admin server 
 function wait_for_admin()
@@ -365,9 +365,10 @@ function wait_for_admin()
 count=1
 export CHECK_URL="http://$wlsAdminURL/weblogic/ready"
 status=`curl --insecure -ILs $CHECK_URL | tac | grep -m1 HTTP/1.1 | awk {'print $2'}`
+echo "Waiting for admin server to start"
 while [[ "$status" != "200" ]]
 do
-  echo "Waiting for admin server to start"
+  echo "."
   count=$((count+1))
   if [ $count -le 30 ];
   then
@@ -387,6 +388,7 @@ done
 
 function create_nodemanager_service()
 {
+ echo "Creating NodeManager service"
  cat <<EOF >/etc/systemd/system/wls_nodemanager.service
  [Unit]
 Description=WebLogic nodemanager service
@@ -411,7 +413,8 @@ EOF
 # This function to create adminserver service
 function create_adminserver_service()
 {
-cat <<EOF >/etc/systemd/system/wls_admin.service
+ echo "Creating admin server service"
+ cat <<EOF >/etc/systemd/system/wls_admin.service
 [Unit]
 Description=WebLogic Adminserver service
  
@@ -710,20 +713,25 @@ then
   create_nodemanager_service
   admin_boot_setup
   create_adminserver_service
+  echo "Enabling nodemanager and admin service"
   sudo systemctl enable wls_nodemanager
   sudo systemctl enable wls_admin
   sudo systemctl daemon-reload
+  echo "Starting nodemanager service"
   sudo systemctl start wls_nodemanager
+  echo "Starting admin server service"
   sudo systemctl start wls_admin
   wait_for_admin
 else
   echo "Creating managed server setup"
   create_managedSetup
   echo "Completed managed server setup"
-  echo "Creating services for Nodemanager and Admin server"
+  echo "Creating services for Nodemanager"
   create_nodemanager_service
+  echo "Enabling nodemanager service"
   sudo systemctl enable wls_nodemanager
   sudo systemctl daemon-reload
+  echo Starting nodemanager service"
   sudo systemctl start wls_nodemanager
   start_managed
 fi  
