@@ -43,10 +43,10 @@ So, when this template is run, user will be required to accept the <a href="http
 
 **Cluster domain configuration**
 <p>Minimum 2 VMs  and maximum of 5 VMs involved for cluster domain setup.</p>
-1) First VM , say wlsVM0 - Nodemanager with Admin server setup will be made
-2) Second VM onwards, say wlsVM1 - Nodemanager with one managed server setup will be made
-3) On admin server vm say wlsVM0, nodemanager and admin server run as systemctl service
-4) On managed server vm, say wlsVM1 onwards , nodemanager run as systemctl service
+<p>1) First VM , say wlsVM0 - Nodemanager with Admin server setup will be made</p>
+<p>2) Second VM onwards, say wlsVM1 - Nodemanager with one managed server setup will be made</p>
+<p>3) On admin server vm say wlsVM0, nodemanager and admin server run as systemctl service</p>
+<p>4) On managed server vm, say wlsVM1 onwards , nodemanager run as systemctl service</p>
 
 **Accessing Admin Console**
 <p>
