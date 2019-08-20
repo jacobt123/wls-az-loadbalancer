@@ -42,7 +42,7 @@ So, when this template is run, user will be required to accept the <a href="http
 *az group deployment create --resource-group &lt;resource-group-name&gt; --template-uri https://raw.githubusercontent.com/wls-eng/arm-oraclelinux-wls-cluster/master/clusterdeploy.json*
 
 **Cluster domain configuration**
-Minimum 2 VMs  and maximum of 5 VMs involved for cluster domain setup.
+<p>Minimum 2 VMs  and maximum of 5 VMs involved for cluster domain setup.</p>
 1) First VM , say wlsVM0 - Nodemanager with Admin server setup will be made
 2) Second VM onwards, say wlsVM1 - Nodemanager with one managed server setup will be made
 3) On admin server vm say wlsVM0, nodemanager and admin server run as systemctl service
