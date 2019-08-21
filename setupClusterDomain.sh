@@ -226,6 +226,9 @@ topology:
             SSL:
                ListenPort: $wlsSSLAdminPort
                Enabled: true
+   SecurityConfiguration:	       
+       NodeManagerUsername: "$wlsUserName"
+       NodeManagerPasswordEncrypted: "$wlsPassword"
 EOF
 }
 
@@ -254,24 +257,9 @@ topology:
            Notes: "$wlsServerName managed server"
            Cluster: "$wlsClusterName"
            Machine: "$nmHost"
-EOF
-}
-
-# This function to create model for sample application deployment 
-function create_app_deploy_model()
-{
-    echo "Creating deploying applicaton model"
-    cat <<EOF >$DOMAIN_PATH/deploy-app.yaml
-domainInfo:
-   AdminUserName: "$wlsUserName"
-   AdminPassword: "$wlsPassword"
-   ServerStartMode: prod
-appDeployments:
-   Application:
-     shoppingcart :
-          SourcePath: "$DOMAIN_PATH/shoppingcart.war"
-          Target: admin
-          ModuleType: war
+   SecurityConfiguration:	       
+       NodeManagerUsername: "$wlsUserName"
+       NodeManagerPasswordEncrypted: "$wlsPassword" 
 EOF
 }
 
