@@ -393,6 +393,14 @@ done
 # Create systemctl service for nodemanager
 function create_nodemanager_service()
 {
+ echo "Setting CrashRecoveryEnabled true at $DOMAIN_PATH/nodemanager/nodemanager.properties"
+ sed -i.bak -e 's/CrashRecoveryEnabled=false/CrashRecoveryEnabled=true/g'  $DOMAIN_PATH/nodemanager/nodemanager.properties
+ if [ $? != 0 ];
+ then
+   echo "Warning : Failed in setting CrashRecoveryEnabled=true."
+   mv $DOMAIN_PATH/nodemanager/nodemanager.properties.bak $DOMAIN_PATH/nodemanager/nodemanager.properties
+ fi
+ sudo chown -R $username:$groupname $DOMAIN_PATH/nodemanager/nodemanager.properties*
  echo "Creating NodeManager service"
  cat <<EOF >/etc/systemd/system/wls_nodemanager.service
  [Unit]
