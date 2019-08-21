@@ -381,7 +381,7 @@ done
 # Create systemctl service for nodemanager
 function create_nodemanager_service()
 {
- echo "Setting CrashRecoveryEnabled true at $DOMAIN_PATH/nodemanager/nodemanager.properties"
+ echo "Setting CrashRecoveryEnabled true at $DOMAIN_PATH/$wlsDomainName/nodemanager/nodemanager.properties"
  sed -i.bak -e 's/CrashRecoveryEnabled=false/CrashRecoveryEnabled=true/g'  $DOMAIN_PATH/$wlsDomainName/nodemanager/nodemanager.properties
  if [ $? != 0 ];
  then
