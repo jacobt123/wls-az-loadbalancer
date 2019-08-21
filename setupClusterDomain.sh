@@ -388,7 +388,7 @@ function create_nodemanager_service()
    echo "Warning : Failed in setting option CrashRecoveryEnabled=true. Continuing without the option."
    mv $DOMAIN_PATH/nodemanager/nodemanager.properties.bak $DOMAIN_PATH/$wlsDomainName/nodemanager/nodemanager.properties
  fi
- sudo chown -R $username:$groupname $DOMAIN_PATH/nodemanager/nodemanager.properties*
+ sudo chown -R $username:$groupname $DOMAIN_PATH/$wlsDomainName/nodemanager/nodemanager.properties*
  echo "Creating NodeManager service"
  cat <<EOF >/etc/systemd/system/wls_nodemanager.service
  [Unit]
