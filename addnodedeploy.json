@@ -83,7 +83,7 @@
       "adminURL":{
         "type":"string",
         "metadata":{
-          "description":"Provide admin URL with [publicip:7001]"
+          "description":"Provide admin URL with vm0_publicip:7001"
          }
       },
       "dnsLabelPrefix":{
