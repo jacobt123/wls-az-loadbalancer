@@ -9,7 +9,7 @@ function echo_stderr ()
 #Function to display usage message
 function usage()
 {
-  echo_stderr "./addManagedServer.sh <acceptOTNLicenseAgreement> <otnusername> <otnpassword> <wlsDomainName> <wlsUserName> <wlsPassword> <managedServerPrefix> <vmNamePrefix> <wlsAdminURL>"  
+  echo_stderr "./addnode.sh <acceptOTNLicenseAgreement> <otnusername> <otnpassword> <wlsDomainName> <wlsUserName> <wlsPassword> <managedServerName> <vmNameP> <wlsAdminURL>"  
 }
 
 # Download JDK for WLS
@@ -463,8 +463,8 @@ export otnpassword=$3
 export wlsDomainName=$4
 export wlsUserName=$5
 export wlsPassword=$6
-export managedServerPrefix=$7
-export vmNamePrefix=$8
+export managedServerName=$7
+export vmName=$8
 export wlsAdminURL=$9
 # Always index 0 is set as admin server
 export wlsAdminPort=7001
@@ -500,16 +500,16 @@ then
 	exit 1
 fi	
 
-if [ -z "$managedServerPrefix" ];
+if [ -z "$managedServerName" ];
 then
-	echo_stderr "managedServerPrefix is required. "
+	echo_stderr "managedServerName is required. "
 fi
 
 export wlsServerName="$managedServerPrefix$indexValue"
 
-if [ -z "$vmNamePrefix" ];
+if [ -z "$vmName" ];
 then
-	echo_stderr "vmNamePrefix is required. "
+	echo_stderr "vmName is required. "
 fi
 
 export WLS_VER="12.2.1.3.0"
