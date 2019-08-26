@@ -505,7 +505,7 @@ then
 	echo_stderr "managedServerName is required. "
 fi
 
-export wlsServerName="$managedServerPrefix$indexValue"
+export wlsServerName=$managedServerName
 
 if [ -z "$vmName" ];
 then
