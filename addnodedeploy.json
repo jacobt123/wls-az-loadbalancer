@@ -83,7 +83,7 @@
       "adminURL":{
         "type":"string",
         "metadata":{
-          "description":"Provide admin URL with non SSL port"
+          "description":"Provide admin URL with [publicip:7001]"
          }
       },
       "dnsLabelPrefix":{
