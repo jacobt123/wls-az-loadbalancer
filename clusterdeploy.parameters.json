@@ -34,7 +34,12 @@
     },
     "vmSizeSelect":{
       "value": "GEN-UNIQUE"
-    } 
-	
+    },
+    "numberOfInstances": {
+      "value": "GEN-UNIQUE"    
+    },
+    "adminVMName": {
+      "value": "GEN-UNIQUE"        
+    }
   }
 }
