@@ -9,7 +9,7 @@ function echo_stderr ()
 #Function to display usage message
 function usage()
 {
-  echo_stderr "./setupClusterDomain.sh <acceptOTNLicenseAgreement> <otnusername> <otnpassword> <wlsDomainName> <wlsUserName> <wlsPassword> <managedServerPrefix> <index value> <vmNamePrefix>"  
+  echo_stderr "./setupClusterDomain.sh <acceptOTNLicenseAgreement> <otnusername> <otnpassword> <wlsDomainName> <wlsUserName> <wlsPassword> <wlsServerName> <adminVMName>"  
 }
 
 
@@ -81,14 +81,14 @@ function validateInput()
         exit 1
     fi	
 
-    if [ -z "$managedServerPrefix" ];
+    if [ -z "$wlsServerName" ];
     then
-        echo_stderr "managedServerPrefix is required. "
+        echo_stderr "wlsServerName is required. "
     fi
 
-    if [ -z "$vmNamePrefix" ];
+    if [ -z "$adminVMName" ];
     then
-        echo_stderr "vmNamePrefix is required. "
+        echo_stderr "adminVMName is required. "
     fi
 }
 
@@ -110,12 +110,13 @@ function downloadJDK()
    done
 }
 
+#Setup JDK required for WLS installation
 function setupJDK()
 {
     sudo cp $BASE_DIR/jdk-8u131-linux-x64.tar.gz $JDK_PATH/jdk-8u131-linux-x64.tar.gz
 
     echo "extracting and setting up jdk..."
-    sudo tar -zxvf $JDK_PATH/jdk-8u131-linux-x64.tar.gz --directory $JDK_PATH
+    sudo tar -zxf $JDK_PATH/jdk-8u131-linux-x64.tar.gz --directory $JDK_PATH
     sudo chown -R $username:$groupname $JDK_PATH
 
     export JAVA_HOME=$JDK_PATH/jdk1.8.0_131
@@ -132,6 +133,7 @@ function setupJDK()
     fi
 }
 
+# Setup WLS 12.2.1.3.0 
 function setupWLS()
 {
     sudo cp $BASE_DIR/fmw_12.2.1.3.0_wls_Disk1_1of1.zip $WLS_PATH/fmw_12.2.1.3.0_wls_Disk1_1of1.zip
@@ -653,7 +655,6 @@ function installWLS()
     then
       echo "Weblogic Server Installation is successful"
     else
-
       echo_stderr "Installation is not successful"
       exit 1
     fi
@@ -683,7 +684,7 @@ function enableAndStartAdminServerService()
 CURR_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 export BASE_DIR="$(readlink -f ${CURR_DIR})"
 
-if [ $# -ne 9 ]
+if [ $# -ne 8 ]
 then
     usage
 	exit 1
@@ -695,32 +696,21 @@ export otnpassword=$3
 export wlsDomainName=$4
 export wlsUserName=$5
 export wlsPassword=$6
-export managedServerPrefix=$7
-export indexValue=$8
-export vmNamePrefix=$9
+export wlsServerName=$7
+export wlsAdminHost=$8
+
 
 validateInput
 
-# Always index 0 is set as admin server
-export adminHost=`hostname`
 export wlsAdminPort=7001
 export wlsSSLAdminPort=7002
 export wlsManagedPort=8001
-export wlsAdminURL=$vmNamePrefix"0:$wlsAdminPort"
+export wlsAdminURL="$wlsAdminHost:$wlsAdminPort"
 export wlsClusterName="cluster1"
 export WLS_VER="12.2.1.3.0"
 export nmHost=`hostname`
 export nmPort=5556
-export samplApp="https://www.oracle.com/webfolder/technetwork/tutorials/obe/fmw/wls/10g/r3/cluster/session_state/files/shoppingcart.zip"
 export WEBLOGIC_DEPLOY_TOOL=https://github.com/oracle/weblogic-deploy-tooling/releases/download/weblogic-deploy-tooling-1.1.1/weblogic-deploy.zip
-
-if [ $indexValue == 0 ];
-then
-   export wlsServerName="admin"
-else
-   export wlsServerName="$managedServerPrefix$indexValue"
-fi
-
 
 addOracleGroupAndUser
 
