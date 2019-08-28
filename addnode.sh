@@ -608,6 +608,8 @@ export wlsAdminPort=7001
 export wlsManagedPort=8001
 export wlsClusterName="cluster1"
 export WLS_VER="12.2.1.3.0"
+export nmHost=`hostname`
+export nmPort=5556
 export samplApp="https://www.oracle.com/webfolder/technetwork/tutorials/obe/fmw/wls/10g/r3/cluster/session_state/files/shoppingcart.zip"
 
 addOracleGroupAndUser
