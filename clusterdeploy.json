@@ -1,324 +1,343 @@
 {
-   "$schema":"https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
-   "contentVersion":"1.0.0.0",
-     "parameters":{
-         "_artifactsLocation":{
-         "type":"string",
-         "metadata":{
-            "description":"The base URI where artifacts required by this template are located. When the template is deployed using the accompanying scripts, a private location in the subscription will be used and this value will be automatically generated."
-         },
-         "defaultValue":"https://raw.githubusercontent.com/wls-eng/arm-oraclelinux-wls-cluster/develop/"
-      },
-      "adminUsername":{
-         "type":"string",
-         "metadata":{
-            "description":"User name for the Virtual Machine."
-         }
-      },
-      "authenticationType":{
-         "type":"string",
-         "defaultValue":"password",
-         "allowedValues":[
-            "sshPublicKey",
-            "password"
-         ],
-         "metadata":{
-            "description":"Type of authentication to use on the Virtual Machine. SSH key is recommended."
-         }
-      },
-      "adminPasswordOrKey":{
-         "type":"securestring",
-         "metadata":{
-            "description":"SSH Key or password for the Virtual Machine. SSH key is recommended."
-         }
-      },
-      "acceptOTNLicenseAgreement":{
-         "type":"string",
-         "metadata":{
-            "description":"Do you agree to provide OTN credentials to accept OTN License Agreement? Enter Y or y to agree, else N or n"
-         }
-      },
-      "otnAccountUsername":{
-         "type":"string",
-         "metadata":{
-            "description":"Username for your Oracle Technology Network account"
-         }
-      },
-      "otnAccountPassword":{
-         "type":"securestring",
-         "metadata":{
-            "description":"Password for your Oracle Technology Network account"
-         }
-      },
-      "wlsDomainName":{
-         "type":"string",
-         "metadata":{
-            "description":"Provide Weblogic domain name"
-         }
-      },
-      "wlsUserName":{
-         "type":"string",
-         "metadata":{
-            "description":"Username for your Weblogic domain name"
-         }
-      },
-      "wlsPassword":{
-         "type":"string",
-         "metadata":{
-            "description":"Password for your Weblogic domain name"
-         }
-      },
-      "managedServerPrefix":{
-        "type":"string",
-        "metadata":{
-          "description":"Provide managed server prefix names"
-         }
-      },
-      "dnsLabelPrefix":{
-         "type":"string",
-         "metadata":{
-            "description":"Unique DNS Name for the Public IP used to access the Virtual Machine."
-         }
-      },
-      "linuxOSVersion":{
-         "type":"string",
-         "defaultValue":"7.3",
-         "allowedValues":[
-            "7.6",
-            "7.5",
-            "7.4",
-            "7.3"
-         ],
-         "metadata":{
-            "description":"The Oracle Linux version for the VM. This will pick a fully patched image of this given Oracle Linux version."
-         }
-      },
-      "numberOfInstances":{
-         "type":"int",
-         "defaultValue":2,
-         "minValue":2,
-         "maxValue":5,
-         "metadata":{
-            "description":"Number of VMs to deploy, limit 5 since this sample is using a single storage account"
-         }
-      },
-      "location":{
-         "type":"string",
-         "defaultValue":"[resourceGroup().location]",
-         "metadata":{
-            "description":"Location for all resources."
-         }
-      },
-      "vmSizeSelect":{
-       "type":"string",
-       "defaultValue":"Standard_A3",
-       "allowedValues":[
-           "Standard_A1",
-           "Standard_A2",
-           "Standard_A3",
-           "Standard_A4"
-       ],
-       "metadata":{
-           "description":"Select appropriate VM Size as per requirement (Standard_A1, Standard_A2, Standard_A3, Standard_A4)"
-       }
-     }    
-   },
-   "variables":{
-      "extensionUrl":"[concat(parameters('_artifactsLocation'), 'scripts/')]",
-      "imagePublisher":"Oracle",
-      "imageOffer":"Oracle-Linux",
-      "vmNamePrefix": "wlsVM",
-      "nicName":"_NIC",	   
-      "storageAccountName":"[concat('storage',uniquestring(resourceGroup().id))]",	   
-      "addressPrefix":"10.0.0.0/16",
-      "subnetName":"Subnet",
-      "subnetPrefix":"10.0.0.0/24",
-      "storageAccountType":"Standard_LRS",
-      "publicIPAddressName":"_PublicIP",
-      "publicIPAddressType":"Dynamic",
-      "vmSize":"[parameters('vmSizeSelect')]",
-      "virtualNetworkName":"[concat(parameters('wlsDomainName'),'_VNET')]",
-      "ScriptFolder": "scripts",
-      "ScriptFileName": "setupClusterDomain.sh",
-      "linuxConfiguration":{
-         "disablePasswordAuthentication":true,
-         "ssh":{
-            "publicKeys":[
-               {
-                  "path":"[concat('/home/', parameters('adminUsername'), '/.ssh/authorized_keys')]",
-                  "keyData":"[parameters('adminPasswordOrKey')]"
-               }
-            ]
-         }
-      },
-      "subnetRef":"[resourceId('Microsoft.Network/virtualNetworks/subnets', variables('virtualNetworkName'), variables('subnetName'))]"
-   },
-   "resources":[
-      {
-         "type":"Microsoft.Storage/storageAccounts",
-         "apiVersion":"2018-11-01",
-         "name":"[variables('storageAccountName')]",
-         "location":"[parameters('location')]",
-         "sku":{
-            "name":"[variables('storageAccountType')]"
-         },
-         "kind":"Storage",
-         "properties":{
-
-         }
-      },
-      {
-         "type":"Microsoft.Network/publicIPAddresses",
-         "apiVersion":"2018-11-01",
-         "name":"[concat(concat(variables('vmNamePrefix'),copyIndex()),variables('publicIPAddressName'))]",
-         "location":"[parameters('location')]",
-         "copy":{
-            "name":"publicIPLoop",
-            "count":"[parameters('numberOfInstances')]"
-         },
-         "properties":{
-            "publicIPAllocationMethod":"[variables('publicIPAddressType')]",
-            "dnsSettings":{
-               "domainNameLabel":"[concat(parameters('dnsLabelPrefix'),copyindex())]"
-            }
-         }
-      },
-      {
-         "type":"Microsoft.Network/virtualNetworks",
-         "apiVersion":"2018-11-01",
-         "name":"[variables('virtualNetworkName')]",
-         "location":"[parameters('location')]",
-         "properties":{
-            "addressSpace":{
-               "addressPrefixes":[
-                  "[variables('addressPrefix')]"
-               ]
-            },
-            "subnets":[
-               {
-                  "name":"[variables('subnetName')]",
-                  "properties":{
-                     "addressPrefix":"[variables('subnetPrefix')]"
-                  }
-               }
-            ]
-         }
-      },
-      {
-         "type":"Microsoft.Network/networkInterfaces",
-         "apiVersion":"2018-11-01",
-         "name":"[concat(concat(variables('vmNamePrefix'),copyIndex()),variables('nicName'))]",
-         "location":"[parameters('location')]",
-         "copy":{
-            "name":"nicLoop",
-            "count":"[parameters('numberOfInstances')]"
-         },
-         "dependsOn":[
-            "[variables('virtualNetworkName')]",
-            "publicIPLoop"
-         ],
-         "properties":{
-            "ipConfigurations":[
-               {
-                  "name":"ipconfig1",
-                  "properties":{
-                     "privateIPAllocationMethod":"Dynamic",
-                     "publicIPAddress":{
-                        "id":"[resourceId('Microsoft.Network/publicIPAddresses',concat(concat(variables('vmNamePrefix'),copyIndex()),variables('publicIPAddressName')))]"
-                     },
-                     "subnet":{
-                        "id":"[variables('subnetRef')]"
-                     }
-                  }
-               }
-            ]
-         }
-      },
-      {
-         "type":"Microsoft.Compute/virtualMachines",
-         "apiVersion":"2018-10-01",
-         "name":"[concat(variables('vmNamePrefix'), copyIndex())]",
-         "location":"[parameters('location')]",
-          "copy":{
-            "name":"virtualMachineLoop",
-            "count":"[parameters('numberOfInstances')]"
-         },
-         "dependsOn":[
-            "nicLoop"
-         ],
-         "properties":{
-            "hardwareProfile":{
-               "vmSize":"[variables('vmSize')]"
-            },
-            "osProfile":{
-               "computerName":"[concat(variables('vmNamePrefix'), copyIndex())]",
-               "adminUsername":"[parameters('adminUsername')]",
-               "adminPassword":"[parameters('adminPasswordOrKey')]",
-               "linuxConfiguration":"[if(equals(parameters('authenticationType'), 'password'), json('null'), variables('linuxConfiguration'))]"
-            },
-            "storageProfile":{
-               "imageReference":{
-                  "publisher":"[variables('imagePublisher')]",
-                  "offer":"[variables('imageOffer')]",
-                  "sku":"[parameters('linuxOSVersion')]",
-                  "version":"latest"
-               },
-               "osDisk":{
-                  "createOption":"FromImage"
-               },
-               "dataDisks":[
-                  {
-                     "diskSizeGB":900,
-                     "lun":0,
-                     "createOption":"Empty"
-                  }
-               ]
-            },
-            "networkProfile":{
-               "networkInterfaces":[
-                  {
-                     "id":"[resourceId('Microsoft.Network/networkInterfaces',concat(concat(variables('vmNamePrefix'),copyIndex()),variables('nicName')))]"
-                  }
-               ]
-            },
-            "diagnosticsProfile":{
-               "bootDiagnostics":{
-                  "enabled":true,
-                  "storageUri":"[concat(reference(concat('Microsoft.Storage/storageAccounts/', variables('storageAccountName')), '2016-01-01').primaryEndpoints.blob)]"
-               }
-            }
-         }
-      },
-      {
-         "type":"Microsoft.Compute/virtualMachines/extensions",
-         "name":"[concat(variables('vmNamePrefix'),copyIndex(),'/newuserscript')]",
-         "apiVersion":"2017-12-01",
-         "location":"[parameters('location')]",
-          "copy":{
-            "name":"virtualMachineiExtensionLoop",
-            "count":"[parameters('numberOfInstances')]"
-         },
-         "dependsOn":[
-            "virtualMachineLoop"
-         ],
-         "properties":{
-            "publisher":"Microsoft.Azure.Extensions",
-            "type":"CustomScript",
-            "typeHandlerVersion":"2.0",
-            "autoUpgradeMinorVersion":true,
-            "settings":{
-                       "fileUris": [
-			   "https://raw.githubusercontent.com/wls-eng/arm-oraclelinux-wls-cluster/develop/setupClusterDomain.sh"
+	"$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+	"contentVersion": "1.0.0.0",
+	"parameters": {
+		"_artifactsLocation": {
+			"type": "string",
+			"metadata": {
+				"description": "The base URI where artifacts required by this template are located. When the template is deployed using the accompanying scripts, a private location in the subscription will be used and this value will be automatically generated."
+			},
+			"defaultValue": "https://raw.githubusercontent.com/wls-eng/arm-oraclelinux-wls-cluster/develop/"
+		},
+		"adminUsername": {
+			"type": "string",
+			"metadata": {
+				"description": "User name for the Virtual Machine."
+			}
+		},
+		"authenticationType": {
+			"type": "string",
+			"defaultValue": "password",
+			"allowedValues": [
+				"sshPublicKey",
+				"password"
 			],
-			"commandToExecute": "[concat('sh setupClusterDomain.sh',' ',parameters('acceptOTNLicenseAgreement'),' ',parameters('otnAccountUsername'),' ',parameters('otnAccountPassword'),' ',parameters('wlsDomainName'),' ',parameters('wlsUserName'),' ',parameters('wlsPassword'),' ',parameters('managedServerPrefix'),' ',copyIndex(),' ',variables('vmNamePrefix'))]"	
-            }
-         }
-      }
-   ],
-   "outputs":{
-      "wlsDomainLocation":{
-         "type":"string",
-         "value":"[concat('/u01/domains/', parameters('wlsDomainName'))]"
-      }
-   }
+			"metadata": {
+				"description": "Type of authentication to use on the Virtual Machine. SSH key is recommended."
+			}
+		},
+		"adminPasswordOrKey": {
+			"type": "securestring",
+			"metadata": {
+				"description": "SSH Key or password for the Virtual Machine. SSH key is recommended."
+			}
+		},
+		"acceptOTNLicenseAgreement": {
+			"type": "string",
+			"metadata": {
+				"description": "Do you agree to provide OTN credentials to accept OTN License Agreement? Enter Y or y to agree, else N or n"
+			}
+		},
+		"otnAccountUsername": {
+			"type": "string",
+			"metadata": {
+				"description": "Username for your Oracle Technology Network account"
+			}
+		},
+		"otnAccountPassword": {
+			"type": "securestring",
+			"metadata": {
+				"description": "Password for your Oracle Technology Network account"
+			}
+		},
+		"wlsDomainName": {
+			"type": "string",
+			"metadata": {
+				"description": "Provide Weblogic domain name"
+			}
+		},
+		"wlsUserName": {
+			"type": "string",
+			"metadata": {
+				"description": "Username for your Weblogic domain name"
+			}
+		},
+		"wlsPassword": {
+			"type": "string",
+			"metadata": {
+				"description": "Password for your Weblogic domain name"
+			}
+		},
+		"managedServerPrefix": {
+			"type": "string",
+			"defaultValue": "managedServer",
+			"metadata": {
+				"description": "Provide managed server prefix names"
+			}
+		},
+		"dnsLabelPrefix": {
+			"type": "string",
+			"metadata": {
+				"description": "Unique DNS Name for the Public IP used to access the Virtual Machine."
+			}
+		},
+		"linuxOSVersion": {
+			"type": "string",
+			"defaultValue": "7.4",
+			"allowedValues": [
+				"7.6",
+				"7.5",
+				"7.4",
+				"7.3"
+			],
+			"metadata": {
+				"description": "The Oracle Linux version for the VM. This will pick a fully patched image of this given Oracle Linux version."
+			}
+		},
+		"numberOfInstances": {
+			"type": "int",
+			"defaultValue": 2,
+			"minValue": 2,
+			"maxValue": 5,
+			"metadata": {
+				"description": "Number of VMs to deploy, limit 5 since this sample is using a single storage account"
+			}
+		},
+		"adminVMName": {
+			"type": "string",
+			"defaultValue": "adminVM",
+			"metadata": {
+				"description": "Admin Server hosting VM name."
+			}
+		},
+		"location": {
+			"type": "string",
+			"defaultValue": "[resourceGroup().location]",
+			"metadata": {
+				"description": "Location for all resources."
+			}
+		},
+		"vmSizeSelect": {
+			"type": "string",
+			"defaultValue": "Standard_A3",
+			"allowedValues": [
+				"Standard_A1",
+				"Standard_A2",
+				"Standard_A3",
+				"Standard_A4"
+			],
+			"metadata": {
+				"description": "Select appropriate VM Size as per requirement (Standard_A1, Standard_A2, Standard_A3, Standard_A4)"
+			}
+		}
+	},
+	"variables": {
+		"extensionUrl": "[concat(parameters('_artifactsLocation'), 'scripts/')]",
+		"imagePublisher": "Oracle",
+		"imageOffer": "Oracle-Linux",
+		"managedVMPrefix": "[concat(parameters('managedServerPrefix'),'VM')]",
+		"nicName": "_NIC",
+		"storageAccountName": "[concat('storage',uniquestring(resourceGroup().id))]",
+		"addressPrefix": "10.0.0.0/16",
+		"subnetName": "Subnet",
+		"subnetPrefix": "10.0.0.0/24",
+		"storageAccountType": "Standard_LRS",
+		"publicIPAddressName": "_PublicIP",
+		"publicIPAddressType": "Dynamic",
+		"vmSize": "[parameters('vmSizeSelect')]",
+		"virtualNetworkName": "[concat(parameters('wlsDomainName'),'_VNET')]",
+		"ScriptFolder": "scripts",
+		"ScriptFileName": "setupClusterDomain.sh",
+		"linuxConfiguration": {
+			"disablePasswordAuthentication": true,
+			"ssh": {
+				"publicKeys": [
+					{
+						"path": "[concat('/home/', parameters('adminUsername'), '/.ssh/authorized_keys')]",
+						"keyData": "[parameters('adminPasswordOrKey')]"
+					}
+				]
+			}
+		},
+		"subnetRef": "[resourceId('Microsoft.Network/virtualNetworks/subnets', variables('virtualNetworkName'), variables('subnetName'))]"
+	},
+	"resources": [
+		{
+			"type": "Microsoft.Storage/storageAccounts",
+			"apiVersion": "2018-11-01",
+			"name": "[variables('storageAccountName')]",
+			"location": "[parameters('location')]",
+			"sku": {
+				"name": "[variables('storageAccountType')]"
+			},
+			"kind": "Storage",
+			"properties": {
+			}
+		},
+		{
+			"type": "Microsoft.Network/publicIPAddresses",
+			"apiVersion": "2018-11-01",
+			"name": "[if(equals(copyIndex(),0),concat(parameters('adminVMName'),variables('publicIPAddressName')),concat(variables('managedVMPrefix'), copyIndex(),variables('publicIPAddressName')))]",
+			"location": "[parameters('location')]",
+			"copy": {
+				"name": "publicIPLoop",
+				"count": "[parameters('numberOfInstances')]"
+			},
+			"properties": {
+				"publicIPAllocationMethod": "[variables('publicIPAddressType')]",
+				"dnsSettings": {
+					"domainNameLabel": "[concat(parameters('dnsLabelPrefix'),copyindex())]"
+				}
+			}
+		},
+		{
+			"type": "Microsoft.Network/virtualNetworks",
+			"apiVersion": "2018-11-01",
+			"name": "[variables('virtualNetworkName')]",
+			"location": "[parameters('location')]",
+			"properties": {
+				"addressSpace": {
+					"addressPrefixes": [
+						"[variables('addressPrefix')]"
+					]
+				},
+				"subnets": [
+					{
+						"name": "[variables('subnetName')]",
+						"properties": {
+							"addressPrefix": "[variables('subnetPrefix')]"
+						}
+					}
+				]
+			}
+		},
+		{
+			"type": "Microsoft.Network/networkInterfaces",
+			"apiVersion": "2018-11-01",
+			"name": "[if(equals(copyIndex(),0),concat(parameters('adminVMName'),variables('nicName')),concat(variables('managedVMPrefix'), copyIndex(),variables('nicName')))]",
+			"location": "[parameters('location')]",
+			"copy": {
+				"name": "nicLoop",
+				"count": "[parameters('numberOfInstances')]"
+			},
+			"dependsOn": [
+				"[variables('virtualNetworkName')]",
+				"publicIPLoop"
+			],
+			"properties": {
+				"ipConfigurations": [
+					{
+						"name": "ipconfig1",
+						"properties": {
+							"privateIPAllocationMethod": "Dynamic",
+							"publicIPAddress": {
+								"id": "[resourceId('Microsoft.Network/publicIPAddresses',if(equals(copyIndex(),0),concat(parameters('adminVMName'),variables('publicIPAddressName')),concat(variables('managedVMPrefix'), copyIndex(),variables('publicIPAddressName'))))]"
+							},
+							"subnet": {
+								"id": "[variables('subnetRef')]"
+							}
+						}
+					}
+				]
+			}
+		},
+		{
+			"type": "Microsoft.Compute/virtualMachines",
+			"apiVersion": "2018-10-01",
+			"name": "[if(equals(copyIndex(),0),parameters('adminVMName'),concat(variables('managedVMPrefix'), copyIndex()))]",
+			"location": "[parameters('location')]",
+			"copy": {
+				"name": "virtualMachineLoop",
+				"count": "[parameters('numberOfInstances')]"
+			},
+			"dependsOn": [
+				"nicLoop"
+			],
+			"properties": {
+				"hardwareProfile": {
+					"vmSize": "[variables('vmSize')]"
+				},
+				"osProfile": {
+					"computerName": "[if(equals(copyIndex(),0),parameters('adminVMName'),concat(variables('managedVMPrefix'), copyIndex()))]",
+					"adminUsername": "[parameters('adminUsername')]",
+					"adminPassword": "[parameters('adminPasswordOrKey')]",
+					"linuxConfiguration": "[if(equals(parameters('authenticationType'), 'password'), json('null'), variables('linuxConfiguration'))]"
+				},
+				"storageProfile": {
+					"imageReference": {
+						"publisher": "[variables('imagePublisher')]",
+						"offer": "[variables('imageOffer')]",
+						"sku": "[parameters('linuxOSVersion')]",
+						"version": "latest"
+					},
+					"osDisk": {
+						"createOption": "FromImage"
+					},
+					"dataDisks": [
+						{
+							"diskSizeGB": 900,
+							"lun": 0,
+							"createOption": "Empty"
+						}
+					]
+				},
+				"networkProfile": {
+					"networkInterfaces": [
+						{
+							"id": "[resourceId('Microsoft.Network/networkInterfaces',if(equals(copyIndex(),0),concat(parameters('adminVMName'),variables('nicName')),concat(variables('managedVMPrefix'), copyIndex(),variables('nicName'))))]"
+						}
+					]
+				},
+				"diagnosticsProfile": {
+					"bootDiagnostics": {
+						"enabled": true,
+						"storageUri": "[concat(reference(concat('Microsoft.Storage/storageAccounts/', variables('storageAccountName')), '2016-01-01').primaryEndpoints.blob)]"
+					}
+				}
+			}
+		},
+		{
+			"type": "Microsoft.Compute/virtualMachines/extensions",
+			"name": "[if(equals(copyIndex(),0),concat(parameters('adminVMName'),'/newuserscript'),concat(variables('managedVMPrefix'), copyIndex(),'/newuserscript'))]",
+			"apiVersion": "2017-12-01",
+			"location": "[parameters('location')]",
+			"copy": {
+				"name": "virtualMachineiExtensionLoop",
+				"count": "[parameters('numberOfInstances')]"
+			},
+			"dependsOn": [
+				"virtualMachineLoop"
+			],
+			"properties": {
+				"publisher": "Microsoft.Azure.Extensions",
+				"type": "CustomScript",
+				"typeHandlerVersion": "2.0",
+				"autoUpgradeMinorVersion": true,
+				"settings": {
+					"fileUris": [
+						"https://raw.githubusercontent.com/wls-eng/arm-oraclelinux-wls-cluster/develop/setupClusterDomain.sh"
+					],
+					"commandToExecute": "[concat('sh setupClusterDomain.sh',' ',parameters('acceptOTNLicenseAgreement'),' ',parameters('otnAccountUsername'),' ',parameters('otnAccountPassword'),' ',parameters('wlsDomainName'),' ',parameters('wlsUserName'),' ',parameters('wlsPassword'),' ',if(equals(copyIndex(),0),'admin',concat(parameters('managedServerPrefix'), copyIndex())),' ',parameters('adminVMName'))]"	
+				}
+			}
+		}
+	],
+	"outputs": {
+		"wlsDomainLocation": {
+			"type": "string",
+			"value": "[concat('/u01/domains/', parameters('wlsDomainName'))]"
+		},
+		"adminHostName": {
+			"type": "string",
+			"value": "[reference(concat(parameters('adminVMName'),variables('publicIPAddressName'))).dnsSettings.fqdn]"
+		},
+		"adminConsole": {
+			"type": "string",
+			"value": "[concat('http://',reference(concat(parameters('adminVMName'),variables('publicIPAddressName'))).dnsSettings.fqdn,':7001/console')]"
+		},
+		"adminSecuredConsole": {
+			"type": "string",
+			"value": "[concat('https://',reference(concat(parameters('adminVMName'),variables('publicIPAddressName'))).dnsSettings.fqdn,':7002/console')]"
+		}
+	}
 }
