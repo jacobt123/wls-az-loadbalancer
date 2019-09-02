@@ -258,6 +258,7 @@
          },
          "dependsOn":[
             "[variables('virtualNetworkName')]",
+	    "[parameters('LBPublicIPAddressName')]",
             "publicIPLoop",
 	    "[variables('loadBalancerName')]"
          ],
