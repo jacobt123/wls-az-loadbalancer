@@ -258,7 +258,7 @@
             "count":"[parameters('numberOfInstances')]"
          },
          "dependsOn":[
-            "nicLoop"
+            "nicLoop",
             "[variables('availabilitySetName')]"
          ],
          "properties":{
