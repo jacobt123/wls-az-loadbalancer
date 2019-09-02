@@ -140,7 +140,9 @@
       "virtualNetworkName":"[concat(parameters('wlsDomainName'),'_VNET')]",
       "ScriptFolder": "scripts",
       "ScriptFileName": "setupClusterDomain.sh",
-      "availabilitySetName": "AvSet",	   
+      "availabilitySetName": "AvSet",	
+      "loadBalancerName": "ilb",
+      "lbID": "[resourceId('Microsoft.Network/loadBalancers', variables('loadBalancerName'))]",
       "linuxConfiguration":{
          "disablePasswordAuthentication":true,
          "ssh":{
