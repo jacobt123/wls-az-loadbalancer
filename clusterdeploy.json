@@ -154,10 +154,13 @@
       "virtualNetworkName":"[concat(parameters('wlsDomainName'),'_VNET')]",
       "ScriptFolder": "scripts",
       "ScriptFileName": "setupClusterDomain.sh",
-      "availabilitySetName": "AvSet",	
+      "availabilitySetName": "WLSCluster-AvailabilitySet",	
       "loadBalancerName": "ilb",
       "lbID": "[resourceId('Microsoft.Network/loadBalancers', variables('loadBalancerName'))]",
-      "publicLBIPAddressID": "[resourceId('Microsoft.Network/publicIPAddresses',parameters('LBPublicIPAddressName'))]",   
+      "publicLBIPAddressID": "[resourceId('Microsoft.Network/publicIPAddresses',parameters('LBPublicIPAddressName'))]", 
+      "availabilitySetId": {
+            "id": "[resourceId('Microsoft.Compute/availabilitySets', variables('availabilitySetName'))]"
+      },
       "linuxConfiguration":{
          "disablePasswordAuthentication":true,
          "ssh":{
@@ -355,9 +358,7 @@
             "[variables('availabilitySetName')]"
          ],
          "properties":{
-	    "availabilitySet": {
-	      "id": "[if(equals(copyIndex(),0),json('null'),resourceId('Microsoft.Compute/availabilitySets',variables('availabilitySetName')))]"
-            },
+	    "availabilitySet": "[if(equals(copyIndex(), 0),json('null'), variables('availabilitySetId'))]",	 
             "hardwareProfile":{
                "vmSize":"[variables('vmSize')]"
             },
