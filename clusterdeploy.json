@@ -242,7 +242,12 @@
                      },
                      "subnet":{
                         "id":"[variables('subnetRef')]"
+                     },
+                     "loadBalancerBackendAddressPools": [
+                     {
+                        "id": "[concat(variables('lbID'), '/backendAddressPools/BackendPool1')]"
                      }
+                     ]			  
                   }
                }
             ]
