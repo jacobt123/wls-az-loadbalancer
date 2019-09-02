@@ -320,8 +320,8 @@
                 "id": "[concat(resourceId('Microsoft.Network/loadBalancers', variables('loadBalancerName')), '/probes/lbprobe')]"
               },
               "protocol": "Tcp",
-              "frontendPort": 80,
-              "backendPort": 80,
+              "frontendPort": 8001,
+              "backendPort": 8001,
               "idleTimeoutInMinutes": 15
             },
             "Name": "lbrule"
@@ -331,7 +331,7 @@
           {
             "properties": {
               "protocol": "Tcp",
-              "port": 80,
+              "port": 8001,
               "intervalInSeconds": 15,
               "numberOfProbes": 2
             },
