@@ -80,6 +80,20 @@
             "description":"Unique DNS Name for the Public IP used to access the Virtual Machine."
          }
       },
+      "dnsNameforLBIP": {
+       "type": "string",
+       "defaultValue": "wlsclusterlb",
+       "metadata": {
+        "description": "DNS for Load Balancer IP"
+      }
+     },
+      "LBPublicIPAddressName": {
+        "type": "string",
+        "defaultValue": "LBPublicIP",
+        "metadata": {
+         "description": "Public IP Name for the Load Balancer"
+      }
+      },	     
       "linuxOSVersion":{
          "type":"string",
          "defaultValue":"7.3",
@@ -143,6 +157,7 @@
       "availabilitySetName": "AvSet",	
       "loadBalancerName": "ilb",
       "lbID": "[resourceId('Microsoft.Network/loadBalancers', variables('loadBalancerName'))]",
+      "publicLBIPAddressID": "[resourceId('Microsoft.Network/publicIPAddresses',parameters('LBPublicIPAddressName'))]",   
       "linuxConfiguration":{
          "disablePasswordAuthentication":true,
          "ssh":{
@@ -181,6 +196,18 @@
       },
       "sku": {
         "name": "Aligned"
+      }
+     },	   
+     {     
+      "type": "Microsoft.Network/publicIPAddresses",
+      "apiVersion":"2018-11-01",
+      "name": "[parameters('LBPublicIPAddressName')]",
+      "location": "[resourceGroup().location]",
+      "properties": {
+        "publicIPAllocationMethod": "[variables('publicIPAddressType')]",
+        "dnsSettings": {
+          "domainNameLabel": "[parameters('dnsNameforLBIP')]"
+        }
       }
      },	   
       {
@@ -268,11 +295,9 @@
         "frontendIPConfigurations": [
           {
             "properties": {
-              "subnet": {
-                "id": "[variables('subnetRef')]"
-              },
-              "privateIPAddress": "10.0.2.6",
-              "privateIPAllocationMethod": "Static"
+               "publicIPAddress": {
+                "id": "[variables('publicLBIPAddressID')]"
+              }
             },
             "name": "LoadBalancerFrontend"
           }
