@@ -140,6 +140,7 @@
       "virtualNetworkName":"[concat(parameters('wlsDomainName'),'_VNET')]",
       "ScriptFolder": "scripts",
       "ScriptFileName": "setupClusterDomain.sh",
+      "availabilitySetName": "AvSet",	   
       "linuxConfiguration":{
          "disablePasswordAuthentication":true,
          "ssh":{
@@ -167,6 +168,19 @@
 
          }
       },
+     {
+      "apiVersion": "2018-04-01",
+      "type": "Microsoft.Compute/availabilitySets",
+      "location": "[parameters('location')]",
+      "name": "[variables('availabilitySetName')]",
+      "properties": {
+        "PlatformUpdateDomainCount": 2,
+        "PlatformFaultDomainCount": 2
+      },
+      "sku": {
+        "name": "Aligned"
+      }
+     },	   
       {
          "type":"Microsoft.Network/publicIPAddresses",
          "apiVersion":"2018-11-01",
@@ -245,8 +259,12 @@
          },
          "dependsOn":[
             "nicLoop"
+            "[variables('availabilitySetName')]"
          ],
          "properties":{
+	    "availabilitySet": {
+              "id": "[resourceId('Microsoft.Compute/availabilitySets',variables('availabilitySetName'))]"
+            },
             "hardwareProfile":{
                "vmSize":"[variables('vmSize')]"
             },
