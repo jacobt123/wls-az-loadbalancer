@@ -161,6 +161,9 @@
       "availabilitySetId": {
             "id": "[resourceId('Microsoft.Compute/availabilitySets', variables('availabilitySetName'))]"
       },
+      "loadBalancerBackendAddressPoolsId" : {
+	    "id": "[concat(variables('lbID'), '/backendAddressPools/BackendPool1')]"  
+      },
       "linuxConfiguration":{
          "disablePasswordAuthentication":true,
          "ssh":{
@@ -277,11 +280,7 @@
                      "subnet":{
                         "id":"[variables('subnetRef')]"
                      },
-                     "loadBalancerBackendAddressPools": [
-                     {
-                        "id": "[concat(variables('lbID'), '/backendAddressPools/BackendPool1')]"
-                     }
-                     ]			  
+                     "loadBalancerBackendAddressPools": "[if(equals(copyIndex(), 0),json('null'), variables('loadBalancerBackendAddressPoolsId'))]"			  
                   }
                }
             ]
