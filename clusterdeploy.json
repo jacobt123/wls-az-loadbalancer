@@ -165,6 +165,9 @@
       "loadBalancerBackendAddressPoolsId" : {
 	    "id": "[concat(variables('lbID'), '/backendAddressPools/BackendPool1')]"  
       },
+      "loadBalancerAdminServerPoolId" : {
+	    "id": "[concat(variables('lbID'), '/backendAddressPools/ASBackendPool')]"  
+      },	   
       "linuxConfiguration":{
          "disablePasswordAuthentication":true,
          "ssh":{
@@ -278,7 +281,7 @@
                      "publicIPAddress":{
                         "id":"[resourceId('Microsoft.Network/publicIPAddresses',concat(concat(variables('vmNamePrefix'),copyIndex()),variables('publicIPAddressName')))]"
                      },
-		     "loadBalancerBackendAddressPools": "[if(equals(copyIndex(), 0),json('null'), variables('loadBalancerBackendAddressPoolsId'))]",  
+		     "loadBalancerBackendAddressPools": "[if(equals(copyIndex(), 0),variables('loadBalancerAdminServerPoolId'), variables('loadBalancerBackendAddressPoolsId'))]",  
                      "subnet":{
                         "id":"[variables('subnetRef')]"
                      }	  
@@ -310,7 +313,10 @@
         "backendAddressPools": [
           {
             "name": "BackendPool1"
-          }
+          },
+         {
+            "name": "ASBackendPool"
+          }		
         ],
         "loadBalancingRules": [
           {
