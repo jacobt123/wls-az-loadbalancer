@@ -255,6 +255,40 @@
       },
       {
          "type":"Microsoft.Network/networkInterfaces",
+	 "condition": "[equals(copyIndex(),0)]",     
+         "apiVersion":"2018-11-01",
+         "name":"[concat(concat(variables('vmNamePrefix'),copyIndex()),variables('nicName'))]",
+         "location":"[parameters('location')]",
+         "copy":{
+            "name":"nicLoop",
+            "count":"[parameters('numberOfInstances')]"
+         },
+         "dependsOn":[
+            "[variables('virtualNetworkName')]",
+	    "[parameters('LBPublicIPAddressName')]",
+            "publicIPLoop",
+	    "[variables('loadBalancerName')]"
+         ],
+         "properties":{
+            "ipConfigurations":[
+               {
+                  "name":"ipconfig1",
+                  "properties":{
+                     "privateIPAllocationMethod":"Dynamic",
+                     "publicIPAddress":{
+                        "id":"[resourceId('Microsoft.Network/publicIPAddresses',concat(concat(variables('vmNamePrefix'),copyIndex()),variables('publicIPAddressName')))]"
+                     },
+                     "subnet":{
+                        "id":"[variables('subnetRef')]"
+                     }		  
+                  }
+               }
+            ]
+         }
+      },
+      {
+         "type":"Microsoft.Network/networkInterfaces",
+	 "condition": "[greater(copyIndex(),0)]",      
          "apiVersion":"2018-11-01",
          "name":"[concat(concat(variables('vmNamePrefix'),copyIndex()),variables('nicName'))]",
          "location":"[parameters('location')]",
@@ -285,7 +319,7 @@
                }
             ]
          }
-      },
+      },	   
     {
       "apiVersion": "2018-04-01",
       "type": "Microsoft.Network/loadBalancers",
