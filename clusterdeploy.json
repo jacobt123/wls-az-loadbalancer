@@ -257,7 +257,7 @@
          "type":"Microsoft.Network/networkInterfaces",
 	 "condition": "[equals(copyIndex(),0)]",     
          "apiVersion":"2018-11-01",
-         "name":"[concat(concat(variables('vmNamePrefix'),copyIndex()),variables('nicName'))]",
+         "name":"[concat(concat(adminServer,copyIndex()),variables('nicName'))]",
          "location":"[parameters('location')]",
          "copy":{
             "name":"nicLoop",
