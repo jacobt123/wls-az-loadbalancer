@@ -384,7 +384,7 @@
          ],
          "properties":{
 	    "availabilitySet": {
-             "id": "[resourceId('Microsoft.Compute/availabilitySets',variables('availabilitySetName'))]"
+	     "id": "[   if(equals(copyIndex(),0 ,'resourceId('Microsoft.Compute/availabilitySets',variables('adminAvailabilitySetName'))','resourceId('Microsoft.Compute/availabilitySets',variables('availabilitySetName'))'))]"
             },	 
             "hardwareProfile":{
                "vmSize":"[variables('vmSize')]"
