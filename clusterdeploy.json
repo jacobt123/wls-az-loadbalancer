@@ -142,6 +142,7 @@
       "imagePublisher":"Oracle",
       "imageOffer":"Oracle-Linux",
       "vmNamePrefix": "wlsVM",
+      "adminVMName" : "adminServerVM",	   
       "nicName":"_NIC",	   
       "storageAccountName":"[concat('storage',uniquestring(resourceGroup().id))]",	   
       "addressPrefix":"10.0.0.0/16",
@@ -257,7 +258,7 @@
          "type":"Microsoft.Network/networkInterfaces",
 	 "condition": "[equals(copyIndex(),0)]",     
          "apiVersion":"2018-11-01",
-         "name":"[concat(concat('adminServer-',copyIndex()),variables('nicName'))]",
+         "name":"[concat(concat(variables('adminVMName'),copyIndex()),variables('nicName'))]",
          "location":"[parameters('location')]",
          "copy":{
             "name":"nicLoop",
@@ -314,7 +315,11 @@
                      "subnet":{
                         "id":"[variables('subnetRef')]"
                      },
-                     "loadBalancerBackendAddressPools": "[if(equals(copyIndex(), 0),json('null'), variables('loadBalancerBackendAddressPoolsId'))]"			  
+                      "loadBalancerBackendAddressPools": [
+                     {
+                        "id": "[concat(variables('lbID'), '/backendAdressPools/BackendPool1')]"
+                     }
+                     ]			  
                   }
                }
             ]
