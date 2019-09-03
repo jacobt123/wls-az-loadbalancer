@@ -331,6 +331,7 @@
       "name": "[variables('loadBalancerName')]",
       "location": "[parameters('location')]",
       "dependsOn": [
+	"[parameters('LBPublicIPAddressName')]",
         "[variables('virtualNetworkName')]"
       ],
       "properties": {
