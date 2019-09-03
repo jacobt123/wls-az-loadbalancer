@@ -287,7 +287,7 @@
                      },
                       "loadBalancerBackendAddressPools": [
                      {
-                        "id": "[if(equals(copyIndex(), 0),variables('loadBalancerAdminServerPoolId'), variables('loadBalancerBackendAddressPoolsId'))]"
+                        "id": "variables('loadBalancerBackendAddressPoolsId')"
                      }
                      ]			  
                   }
@@ -370,7 +370,7 @@
             "[variables('availabilitySetName')]"
          ],
          "properties":{
-	    "availabilitySet": "[if(equals(copyIndex(), 0),json('null'), variables('availabilitySetId'))]",	 
+	    "availabilitySet": "variables('availabilitySetId')",	 
             "hardwareProfile":{
                "vmSize":"[variables('vmSize')]"
             },
