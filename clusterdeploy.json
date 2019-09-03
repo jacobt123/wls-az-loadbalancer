@@ -156,6 +156,7 @@
       "ScriptFolder": "scripts",
       "ScriptFileName": "setupClusterDomain.sh",
       "availabilitySetName": "WLSCluster-AvailabilitySet",	
+      "adminAvailabilitySetName": "WLSAdmin-AvailabilitySet",
       "loadBalancerName": "ilb",
       "lbID": "[resourceId('Microsoft.Network/loadBalancers', variables('loadBalancerName'))]",
       "publicLBIPAddressID": "[resourceId('Microsoft.Network/publicIPAddresses',parameters('LBPublicIPAddressName'))]", 
@@ -208,6 +209,19 @@
         "name": "Aligned"
       }
      },	   
+    {
+      "apiVersion": "2018-04-01",
+      "type": "Microsoft.Compute/availabilitySets",
+      "location": "[parameters('location')]",
+      "name": "[variables('adminAvailabilitySetName')]",
+      "properties": {
+        "PlatformUpdateDomainCount": 2,
+        "PlatformFaultDomainCount": 2
+      },
+      "sku": {
+        "name": "Aligned"
+      }
+     },	   	   
      {     
       "type": "Microsoft.Network/publicIPAddresses",
       "apiVersion":"2018-11-01",
