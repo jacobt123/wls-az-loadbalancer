@@ -387,7 +387,7 @@
          ],
          "properties":{
 	    "availabilitySet": {
-               "id": "[if(equals(copyIndex(), 0),variables('adminAvailabilitySetId'), variables('availabilitySetId'))]"
+               "id": "[if(equals(copyIndex(), 0),json('null'), variables('availabilitySetId'))]"
             },	 
             "hardwareProfile":{
                "vmSize":"[variables('vmSize')]"
