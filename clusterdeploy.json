@@ -278,15 +278,10 @@
                      "publicIPAddress":{
                         "id":"[resourceId('Microsoft.Network/publicIPAddresses',concat(concat(variables('vmNamePrefix'),copyIndex()),variables('publicIPAddressName')))]"
                      },
+		     "loadBalancerBackendAddressPools": "[if(equals(copyIndex(), 0),json('null'), variables('loadBalancerBackendAddressPoolsId'))]",  
                      "subnet":{
                         "id":"[variables('subnetRef')]"
-                     },
-		      	  
-                     "loadBalancerBackendAddressPools": [
-                     {
-                        "id": "[concat(variables('lbID'), '/backendAdressPools/BackendPool1')]"
-                     }
-                     ]			  
+                     }	  
                   }
                }
             ]
