@@ -163,6 +163,9 @@
       "availabilitySetId": {
             "id": "[resourceId('Microsoft.Compute/availabilitySets', variables('availabilitySetName'))]"
       },
+      "adminAvailabilitySetId": {
+            "id": "[resourceId('Microsoft.Compute/availabilitySets', variables('adminAvailabilitySetName'))]"
+      },	   
       "loadBalancerBackendAddressPoolsId" : {
 	    "id": "[concat(variables('lbID'), '/backendAddressPools/BackendPool1')]"  
       },
@@ -384,7 +387,7 @@
          ],
          "properties":{
 	    "availabilitySet": {
-	     "id": "[   if(equals(copyIndex(),0 ,'resourceId('Microsoft.Compute/availabilitySets',variables('adminAvailabilitySetName'))','resourceId('Microsoft.Compute/availabilitySets',variables('availabilitySetName'))'))]"
+               "id": "[if(equals(copyIndex(), 0),variables('adminAvailabilitySetId'), variables('availabilitySetId'))]"
             },	 
             "hardwareProfile":{
                "vmSize":"[variables('vmSize')]"
